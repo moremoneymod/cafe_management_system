@@ -1,0 +1,10 @@
+<h1>Список заказов</h1>
+<button type="button" ><a href="{% url 'create_order' %}" style="text-decoration: none; color: black">Создать новый заказ</a></button>
+<button type="button" ><a href="{% url 'order_search' %}" style="text-decoration: none; color: black">Поиск заказа</a></button>
+<button type="button" ><a href="{% url 'calculate_revenue' %}" style="text-decoration: none; color: black">Выручка за смену</a></button>
+<ul>
+    {% for order in orders %}
+    <li>{{ order }} - <a href="{% url 'update_order' order.id %}">Редактировать</a> | <a
+            href="{% url 'order_delete' order.id %}">Удалить</a></li>
+    {% endfor %}
+</ul>

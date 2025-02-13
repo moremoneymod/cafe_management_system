@@ -1,0 +1,108 @@
+<h1>Создание и редактирование заказа</h1>
+<form method="post" action="{% if order_id is not None %}{% url 'update_order' order_id %}{% else %}{% url 'create_order' %}{% endif %}">
+    {% csrf_token %}
+    <div>
+        <label for="id_table_number">Номер стола:</label>
+        {{ form.table_number }}
+    </div>
+    <div>
+        <label for="id_status">Статус:</label>
+        {{ form.status }}
+    </div>
+    <div>
+        <label for="id_total_price">Итоговая сумма:</label>
+        {{ form.total_price }}
+    </div>
+    <div id="dishes">
+        {% for field, errors in form.errors.items %}
+            {% if field not in form.fields %}
+                <div class="error">
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        {% if form.dishes %}
+            {% for dish in form.dishes %}
+            <div class="dish" id="dish-{{ forloop.counter }}">
+                <label for="id_dish_name">Название блюда:</label>
+                <input type="text" name="dish_name" value="{{ dish.name }}">
+                <label for="id_dish_price">Цена блюда:</label>
+                <input type="number" step="0.01" name="dish_price" value="{{ dish.price }}">
+                <button type="button" class="remove-dish" data-dish-id="{{ forloop.counter }}">Удалить</button>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="dish" id="dish-1">
+                <label for="id_dish_name">Название блюда:</label>
+                <input type="text" name="dish_name" id="id_dish_name">
+                <label for="id_dish_price">Цена блюда:</label>
+                <input type="number" step="0.01" name="dish_price" id="id_dish_price">
+                <button type="button" class="remove-dish" data-dish-id="1">Удалить</button>
+            </div>
+        {% endif %}
+    </div>
+    {% if form.dish_price.errors %}
+    <div class="error">{{ form.dish_price.errors }}</div>
+    {% endif %}
+    {% if form.table_number.errors %}
+    <div class="error">{{ form.table_number.errors }}</div>
+    {% endif %}
+    <br>
+    <button type="button" id="add-dish">Добавить блюдо</button>
+    <button type="submit">Сохранить заказ</button>
+    <button type="submit"><a href="{% url 'list_order' %}" style="text-decoration: none; color: black" >Вернуться на главную</a></button>
+</form>
+
+<script>
+    // Динамическое добавление полей для блюд
+    document.getElementById('add-dish').addEventListener('click', function() {
+        const dishesDiv = document.getElementById('dishes');
+        const dishCount = dishesDiv.querySelectorAll('.dish').length + 1;
+        const newDish = document.createElement('div');
+        newDish.className = 'dish';
+        newDish.id = `dish-${dishCount}`;
+        newDish.innerHTML = `
+            <label for="id_dish_name">Название блюда:</label>
+            <input type="text" name="dish_name">
+            <label for="id_dish_price">Цена блюда:</label>
+            <input type="number" step="0.01" name="dish_price">
+            <button type="button" class="remove-dish" data-dish-id="${dishCount}">Удалить</button>
+        `;
+        dishesDiv.appendChild(newDish);
+    });
+
+    // Удаление блюда
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-dish')) {
+            const dishId = event.target.getAttribute('data-dish-id');
+            const dishElement = document.getElementById(`dish-${dishId}`);
+            dishElement.remove();
+            updateTotalPrice();  // Обновляем итоговую сумму после удаления
+        }
+    });
+
+    // Обновление итоговой суммы при изменении цены блюда
+    function updateTotalPrice() {
+        const prices = document.querySelectorAll('input[name="dish_price"]');
+        let total = 0;
+        prices.forEach(priceInput => {
+            if (priceInput.value) {
+                total += parseFloat(priceInput.value);
+            }
+        });
+        document.getElementById('id_total_price').value = total.toFixed(2);
+    }
+
+    // Отслеживаем изменения в полях цены
+    document.addEventListener('input', function(event) {
+        if (event.target.name === 'dish_price') {
+            updateTotalPrice();
+        }
+    });
+
+    // Инициализация итоговой суммы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', updateTotalPrice);
+</script>

@@ -1,0 +1,38 @@
+<h1>Поиск заказов</h1>
+<form method="get">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Найти</button>
+    <button type="submit"><a href="{% url 'list_order' %}" style="text-decoration: none; color: black" >Вернуться на главную</a></button>
+</form>
+
+{% if orders %}
+    <h2>Результаты поиска:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Номер стола</th>
+                <th>Статус</th>
+                <th>Итоговая сумма</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.table_number }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>{{ order.total_price }}</td>
+                <td>
+                    <a href="{% url 'update_order' order.id %}">Редактировать</a>
+                    <a href="{% url 'order_delete' order.id %}">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Заказы не найдены.</p>
+{% endif %}
